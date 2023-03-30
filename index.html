@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -144,6 +145,10 @@ margin-top: 32px;
   }
 }
 
+button#exportarCSV {
+    margin-top: 24px;
+}
+
 
 /* Adicionando regra de estilo para o botão adicionar ideia */
 button[type="submit"] {
@@ -200,6 +205,11 @@ margin-top: 10px;
     padding: 20px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);"></canvas>
 
+<button id="exportarCSV" style="display: none;">Exportar CSV</button>
+
+
+    
+
 
     <script>
  const formularioIdea = document.getElementById("formularioIdea");
@@ -227,6 +237,14 @@ function exibirIdeias(ideias) {
 
   const tbody = tabelaIdeias.querySelector("tbody");
   tbody.innerHTML = "";
+
+  // Atualiza a visibilidade do botão "Exportar CSV"
+  const exportarCSVButton = document.getElementById("exportarCSV");
+  if (ideias.length > 0) {
+    exportarCSVButton.style.display = "block";
+  } else {
+    exportarCSVButton.style.display = "none";
+  }
 
   if (ideias.length === 0) {
     tabelaIdeias.style.display = "none";
@@ -370,7 +388,34 @@ function exibirGrafico(graficoId, tabelaIdeiasId) {
   observer.observe(tabelaIdeias, { childList: true, subtree: true });
 }
 
+function exportarCSV(ideias) {
+  const csv = [
+    ["Nome", "Impacto", "Confiança", "Esforço", "Pontuação ICE"]
+      .map(coluna => `"${coluna}"`)
+      .join(","),
+    ...ideias.map(ideia =>
+      [ideia.nome, ideia.impacto, ideia.confianca, ideia.esforco, ideia.ice]
+        .map(valor => `"${valor}"`)
+        .join(",")
+    ),
+  ].join("\n");
 
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", "priorizacao.csv");
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+document.getElementById("exportarCSV").addEventListener("click", () => {
+  const ideias = carregarIdeias();
+  exportarCSV(ideias);
+});
 
     </script>
     
