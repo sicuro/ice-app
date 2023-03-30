@@ -209,6 +209,7 @@ function pontuacaoICE(impacto, confianca, esforco) {
     return Math.floor(impacto * confianca * esforco);
 }
 
+exibirGrafico("graficoPriorizacao", "tabelaIdeias");
 
 
 function salvarIdeias(ideias) {
@@ -256,6 +257,7 @@ function exibirIdeias(ideias) {
 
     criarGraficoPriorizacao(ideias);
   }
+  
 }
 
 
@@ -352,6 +354,22 @@ function criarGraficoPriorizacao(ideias) {
     },
   });
 }
+function exibirGrafico(graficoId, tabelaIdeiasId) {
+  const grafico = document.getElementById(graficoId);
+  const tabelaIdeias = document.getElementById(tabelaIdeiasId);
+  const observer = new MutationObserver(() => {
+    const ideias = carregarIdeias();
+
+    if (ideias.length === 0) {
+      grafico.style.display = "none";
+    } else {
+      grafico.style.display = "block";
+    }
+  });
+
+  observer.observe(tabelaIdeias, { childList: true, subtree: true });
+}
+
 
 
     </script>
