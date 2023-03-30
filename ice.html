@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pontuação ICE</title>
+    <style>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  margin: 20px;
+}
+* {
+  box-sizing: border-box;
+}
+h1,
+h2 {
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+input {
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  width: 100%;
+  flex-grow: 1;
+  outline: none;
+}
+
+input:focus {
+  border-color: #66afe9;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset,
+    0 0 8px rgba(102, 175, 233, 0.6);
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+  outline: none;
+  margin-left: auto;
+}
+
+button:hover {
+  background-color: #0069d9;
+  border-color: #0062cc;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 200px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  left: 100%;
+  margin-left: 10px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+#graficoPriorizacao  {
+margin-top: 32px;
+  }
+@media screen and (max-width: 600px) {
+    form {
+    padding: 10px;
+  }
+
+  th,
+  td {
+    font-size: 12px;
+    padding: 5px;
+  }
+}
+
+
+@media screen and (max-width: 400px) {
+  form, table {
+    width: 100vw;
+    max-width: none;
+  }
+  
+  input, button {
+    width: calc(100% - 24px);
+    max-width: none;
+  }
+  
+  th, td {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
+
+
+/* Adicionando regra de estilo para o botão adicionar ideia */
+button[type="submit"] {
+width: 100%;
+margin-top: 10px;
+}
+
+    </style>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+    <h1>Pontuação ICE</h1>
+
+    <form id="formularioIdea">
+        <div class="tooltip">
+            <input type="text" id="nome" placeholder="Nome da ideia" required>
+            <span class="tooltiptext">Exemplo: Campanha de marketing nas redes sociais</span>
+        </div>
+        <div class="tooltip">
+            <input type="number" id="impacto" placeholder="Impacto (1-10)" step="0.1" min="0" max="10" required>
+            <span class="tooltiptext">Exemplo: 8 (alta probabilidade de aumentar as vendas)</span>
+        </div>
+        <div class="tooltip">
+            <input type="number" id="confianca" placeholder="Confiança (1-10)" step="0.1" min="0" max="10" required>
+            <span class="tooltiptext">Exemplo: 7 (baseado em campanhas anteriores bem-sucedidas)</span>
+        </div>
+        <div class="tooltip">
+            <input type="number" id="esforco" placeholder="Esforço (1-10)" step="0.1" min="0" max="10" required>
+            <span class="tooltiptext">Exemplo: 4 (necessário coordenar equipe e criar conteúdo)</span>
+        </div>
+        <button type="submit">Adicionar ideia</button>
+    </form>
+
+    <h2>Ideias</h2>
+    <table id="tabelaIdeias">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Impacto</th>
+                <th>Confiança</th>
+                <th>Esforço</th>
+                <th>Pontuação ICE</th>
+                <th>Excluir</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- As linhas da tabela serão inseridas aqui pelo JavaScript -->
+        </tbody>
+    </table>
+    <p id="mensagemSemIdeias" style="display: none;">Adicione uma ideia para gerar o cálculo de ICE</p>
+    <canvas id="graficoPriorizacao" style="    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);"></canvas>
+
+
+    <script>
+ const formularioIdea = document.getElementById("formularioIdea");
+const tabelaIdeias = document.getElementById("tabelaIdeias");
+
+function pontuacaoICE(impacto, confianca, esforco) {
+    return Math.floor(impacto * confianca * esforco);
+}
+
+
+
+function salvarIdeias(ideias) {
+  localStorage.setItem("ideias", JSON.stringify(ideias));
+}
+
+function carregarIdeias() {
+  const ideias = localStorage.getItem("ideias");
+  return ideias ? JSON.parse(ideias) : [];
+}
+
+function exibirIdeias(ideias) {
+  // Ordena as ideias pelo ICE Score
+  ideias.sort((a, b) => b.ice - a.ice);
+
+  const tbody = tabelaIdeias.querySelector("tbody");
+  tbody.innerHTML = "";
+
+  if (ideias.length === 0) {
+    tabelaIdeias.style.display = "none";
+    const mensagemSemIdeias = document.getElementById("mensagemSemIdeias");
+    mensagemSemIdeias.style.display = "block";
+  } else {
+    tabelaIdeias.style.display = "table";
+    const mensagemSemIdeias = document.getElementById("mensagemSemIdeias");
+    mensagemSemIdeias.style.display = "none";
+    for (const ideia of ideias) {
+      const row = document.createElement("tr");
+
+      for (const key in ideia) {
+        const cell = document.createElement("td");
+        cell.textContent = ideia[key];
+        row.appendChild(cell);
+      }
+
+      const deleteCell = document.createElement("td");
+      const deleteButton = document.createElement("button");
+      deleteButton.textContent = "Excluir";
+      deleteButton.setAttribute("data-name", ideia.nome);
+      deleteCell.appendChild(deleteButton);
+      row.appendChild(deleteCell);
+
+      tbody.appendChild(row);
+    }
+
+    criarGraficoPriorizacao(ideias);
+  }
+}
+
+
+function adicionarIdea(event) {
+  event.preventDefault();
+
+  const nome = formularioIdea.querySelector("#nome").value;
+  const impacto = parseFloat(formularioIdea.querySelector("#impacto").value);
+  const confianca = parseFloat(formularioIdea.querySelector("#confianca").value);
+  const esforco = parseFloat(formularioIdea.querySelector("#esforco").value);
+  const ice = pontuacaoICE(impacto, confianca, esforco);
+
+  const ideias = carregarIdeias();
+  ideias.push({ nome, impacto, confianca, esforco, ice });
+  salvarIdeias(ideias);
+  exibirIdeias(ideias);
+
+  formularioIdea.reset();
+}
+
+formularioIdea.addEventListener("submit", adicionarIdea);
+exibirIdeias(carregarIdeias());
+
+document.body.addEventListener("click", function (event) {
+  if (event.target.tagName === "BUTTON" && event.target.hasAttribute("data-name")) {
+    const nome = event.target.getAttribute("data-name");
+    deletarIdeia(nome);
+  }
+});
+
+function deletarIdeia(nome) {
+  const confirmacao = confirm("Você realmente deseja deletar esta ideia?");
+
+  if (confirmacao) {
+    const ideias = carregarIdeias();
+    const index = ideias.findIndex(ideia => ideia.nome === nome);
+
+    if (index !== -1) {
+      ideias.splice(index, 1);
+      salvarIdeias(ideias);
+      exibirIdeias(ideias);
+    }
+  }
+}
+
+function criarGraficoPriorizacao(ideias) {
+  // Calcula o ICE Score de cada ideia
+  for (const ideia of ideias) {
+    ideia.ice = pontuacaoICE(ideia.impacto, ideia.confianca, ideia.esforco);
+  }
+
+  // Ordena as ideias pelo ICE Score
+  ideias.sort((a, b) => b.ice - a.ice);
+
+  // Cria um array com os nomes das ideias e outro com os ICE Scores
+  const labels = ideias.map(ideia => ideia.nome);
+  const data = ideias.map(ideia => ideia.ice);
+
+  // Configura o gráfico
+  const grafico = new Chart(graficoPriorizacao, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Priorização",
+          backgroundColor: [
+            "#4F5D75",
+            "#EF8354",
+            "#C4BBAF",
+            "#1E434C",
+            "#3A3D3F",
+          ],
+          data: data,
+        },
+      ],
+    },
+    options: {
+      legend: { display: false },
+      scales: {
+        yAxes: [
+          {
+            ticks: {
+              beginAtZero: true,
+              callback: function (value) {
+                if (value % 1 === 0) {
+                  return value;
+                }
+              },
+            },
+          },
+        ],
+      },
+    },
+  });
+}
+
+
+    </script>
+    
+
+</body>
+</html>
+
